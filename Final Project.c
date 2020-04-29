@@ -22,7 +22,7 @@ void shuffleDeck(card** hl, card** hr); // Shuffles deck
 void resetHand(card** hl, card** hr); // Resets dealer or player hand
 void dealCard(card* p, card** hl, card** hr);
 void deleteCard(card* p, card** hl, card** hr);
-card* findCard(card** hl, card** hr);
+card* findCard(card** hl, card** hr);	// Find random card, add to player/dealer hand and delete from deck
 
 int checkDealerHand(card* hl, card* hr);
 int checkPlayerHand(card* hl, card* hr);
@@ -53,7 +53,12 @@ int main(void)
 	card* playerEnd = NULL;
 	card* dealerStart = NULL;
 	card* dealerEnd = NULL;
-
+	
+	// switch statement for checkPlayerHand and checkDealerHand outputs
+	// while (checkDealerHand == 0), put switch after
+	
+	// while player hasn't gone bust or asked to stop, switch after
+	// Add print statements
 }
 
 void dealCard(card* p, card** hl, card** hr)
