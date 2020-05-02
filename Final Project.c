@@ -35,6 +35,7 @@ int main(void)
 	card* deckStart = NULL;
 	card* deckEnd = NULL;
 	int i, j;
+	int playerBet;
 	
 	// Initialize deck
 	for (i = 1; i < 14;i++)	// Initialize each number value
@@ -53,6 +54,12 @@ int main(void)
 	card* playerEnd = NULL;
 	card* dealerStart = NULL;
 	card* dealerEnd = NULL;
+	
+	printf("Dealer: ~\n");
+	printf("Player: \n");      // idk which function shuffles/picks a random card
+	printf("Place your bet: ");
+	scanf("%d", &playerBet);
+	
 
 }
 
