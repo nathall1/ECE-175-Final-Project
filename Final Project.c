@@ -25,10 +25,11 @@ void dealCard(card* p, card** hl, card** hr);
 void deleteCard(card* p, card** hl, card** hr);
 card* findCard(card** hl, card** hr);	// Find random card, add to player/dealer hand and delete from deck
 
-int checkDealerHand(card* hl, card* hr);
-int checkPlayerHand(card* hl, card* hr);
+int checkDealerHand(card* hl, card* hr);	// Checks sum of dealer's hand
+int checkPlayerHand(card* hl, card* hr);	// Checks sum of player's hand
 int compareSums(card* dealer, card* player);
-void printCard(card* printedCard);
+int numCardsLeft(card* hl, card* hr);
+void printCard(card* printedCard);		// Prints cards in player's/dealer's hand
 
 
 card* deckStart = NULL;
@@ -54,22 +55,23 @@ int main(void)
 	card* dealerEnd = NULL;
 	srand(time(0));
 
-	while (playerMoney > MINBET)
+	while (playerMoney > MINBET)	// Starts the round; Round only begins if player has more money than MINBET ($20)
 	{
-		printf("\nRound %d:", roundCounter);
+		printf("\nRound %d:", roundCounter);			// Prints what # round player/dealer is on
+		// Deal first cards to player and dealer
 		dealCard(dealerStart, &dealerStart, &dealerEnd);
 		dealCard(playerStart, &playerStart, &playerEnd);
 		printf("\nDealer: ");
-		printf("*");
+		printf("*");			// Print first cards for player and dealer ("*" represents hidden card)
 		printf("\nPlayer: ");
 		printCard(playerStart);
 
 		// Ask user for bet amount
 		printf("\nPlace your bet (minimum 20, max 200): ");
 		scanf("%d", &playerBet);
-		while ((playerBet > 200) || (playerBet < 20))
+		while ((playerBet > 200) || (playerBet < 20))	// If the player enters an invalid bet amount
 		{
-			printf("\nInvalid bet. Please try again: ");
+			printf("\nInvalid bet. Please try again: ");	// Prompts user to enter a bet amount until valid amount is entered
 			scanf("%d", &playerBet);
 		}
 		// Deal dealer hand
@@ -82,9 +84,9 @@ int main(void)
 		card* dealerIndex;
 		dealerIndex = dealerStart;
 		printf("\Dealer: ");
-		switch (checkDealerHand(dealerStart, dealerEnd))
+		switch (checkDealerHand(dealerStart, dealerEnd))	// Checks status/sum of dealer's hand
 		{
-		case 5:
+		case 5:		// If dealer sum equals 14
 			while (dealerIndex != NULL)		// Print all cards
 			{
 				printCard(dealerIndex);
@@ -92,17 +94,17 @@ int main(void)
 			}
 			printf("\nDealer hit 14. You have to hit 31 to win.");
 			break;
-		case 4:
+		case 4:		// If dealer sum equals 31
 			while (dealerIndex != NULL)		// Print all cards
 			{
 				printCard(dealerIndex);
 				dealerIndex = dealerIndex->next;
 			}
 			playerMoney = playerMoney - playerBet;
-			printf("\nDealer hit 31! Dealer wins.");
-			roundEnd = true;
+			printf("\nDealer hit 31! Dealer wins.");	// If dealer sum equals 31, dealer wins
+			roundEnd = true;	// The round ends. The dealer won.
 			break;
-		case 3:
+		case 3:		// If dealer sum is between 27 and 31 (includes 27, excludes 31)
 			while (dealerIndex->next != NULL)	// Don't print last card
 			{
 				printCard(dealerIndex);
@@ -110,15 +112,15 @@ int main(void)
 			}
 			printf("FD CARD");
 			break;
-		case -1:
+		case -1:	// If dealer goes bust (sum of dealer's cards > 31)
 			while (dealerIndex != NULL)
 			{
 				printCard(dealerIndex);
 				dealerIndex = dealerIndex->next;
 			}
 			playerMoney = playerMoney + playerBet;
-			printf("\nDealer went bust! You win");
-			roundEnd = true;
+			printf("\nDealer went bust! You win");		// If dealer goes bust, player wins
+			roundEnd = true;	// The round ends. The player won.
 			break;
 		}
 
@@ -129,50 +131,50 @@ int main(void)
 			card* playerIndex;
 			while ((playerChoice == 'h') && (checkPlayerHand(playerStart, playerEnd) == 0))
 			{
-				printf("\nWould you like to hit or stand? (h or s): ");
+				printf("\nWould you like to hit or stand? (h or s): ");		// Asks user if they want to keep adding more cards or not
 				scanf("%*c%c", &playerChoice);
 				while ((playerChoice != 'h') && (playerChoice != 's'))
 				{
-					printf("\nInvalid input. Please try again: ");
+					printf("\nInvalid input. Please try again: ");	// If user doesn't enter a valid input ("h" or "s")
 					scanf("%*c%c", &playerChoice);
 				}
 				playerIndex = playerStart;
-				if (playerChoice == 'h')
+				if (playerChoice == 'h')	// If player inputs "h"
 				{
-					dealCard(playerStart, &playerStart, &playerEnd);
+					dealCard(playerStart, &playerStart, &playerEnd);	// Deals another card to player's hand
 					printf("\nPlayer: ");
 					while (playerIndex != NULL)
 					{
-						printCard(playerIndex);
+						printCard(playerIndex);		// Prints player's new card
 						playerIndex = playerIndex->next;
 					}
 				}
 			}
-			switch (checkPlayerHand(playerStart, playerEnd))
+			switch (checkPlayerHand(playerStart, playerEnd))	// Checks status/sum of player's hand
 			{
-			case 5:
+			case 5:		// If player sum equals 14
 				printf("\nPlayer hit 14!");
-				playerMoney = playerMoney + playerBet;
+				playerMoney = playerMoney + playerBet;	// Player wins and bet amount is added to player's total amount of money
 				break;
-			case 4:
+			case 4:		// If player sum equals 31
 				printf("\nPLayer hit 31!");
-				playerMoney = playerMoney + playerBet;
+				playerMoney = playerMoney + playerBet;	// Player wins and bet amount is added to player's total amount of money
 				break;
-			case -1:
+			case -1:	// If player goes bust (sum > 31)
 				printf("\nPlayer goes bust!");
-				playerMoney = playerMoney - playerBet;
+				playerMoney = playerMoney - playerBet;	// Player loses and bet amount is subtracted from player's total amount of money
 				break;
 			}
-			if (playerChoice == 's')
+			if (playerChoice == 's')	// If player chooses not to add anymore cards to their hand
 			{
 				int result = compareSums(dealerStart, playerStart);
 			}
 		}
-		printf("\nPlayer money: %d", playerMoney);
+		printf("\nPlayer money: %d", playerMoney);	// Prints current amount of money player has
 		printf("\n");
 		resetHand(&playerStart, &playerEnd);		// Resets dealer and player hand
 		resetHand(&dealerStart, &dealerEnd);
-		roundCounter++;
+		roundCounter++;		// Counts the number of rounds played
 	}
 
 	return 0;
@@ -276,12 +278,12 @@ void deleteCard(card* p, card** hl, card** hr) {
 
 	free(p); // free memory 
 }
-card* findCard(card** hl, card** hr)
+card* findCard(card** hl, card** hr)	// Find random card, add to player/dealer hand and delete from deck
 {
-	int value = (rand() % 13) + 1;
+	int value = (rand() % 13) + 1;	// Picks random values for value and suit of card
 	int nsuit = (rand() % 4) + 1;
 	char suit[9];
-	switch (nsuit)
+	switch (nsuit)	// Matches suit with the suit number
 	{
 	case 1:
 		strcpy(suit, "heart");
@@ -302,12 +304,12 @@ card* findCard(card** hl, card** hr)
 	strcpy(temp->suit, suit);
 	card* holder;
 	card* deckIndex = *hl;
-	while (deckIndex->next != NULL)
+	while (deckIndex->next != NULL)	// While it's not the end of the deck
 	{
 		if ((deckIndex->value == value) && (strcmp(suit, (deckIndex->suit)) == 0))
 		{
 			//holder = temp;
-			deleteCard(deckIndex, hl, hr);
+			deleteCard(deckIndex, hl, hr);	// Deletes card from deck
 			return temp;
 		}
 		deckIndex = deckIndex->next;
@@ -315,23 +317,23 @@ card* findCard(card** hl, card** hr)
 	//temp = findCard(hl, hr);
 }
 
-int checkDealerHand(card* hl, card* hr)
+int checkDealerHand(card* hl, card* hr)		// Checks sum of dealer's hand
 {
 	int sum = 0;
 	int altSum = 0;	// altSum used for possibility of ace
 	while (hl != NULL)	
 	{
-		if ((hl->value == 11) || (hl->value == 12) || (hl->value == 13))
+		if ((hl->value == 11) || (hl->value == 12) || (hl->value == 13))	// If suit is 11, 12, or 13, sum is 10
 		{
 			sum += 10;
 			altSum += 10;
 		}
-		else if (hl->value == 1)
+		else if (hl->value == 1)	// If suit is ace, sum is 1 (or altSum is 11)
 		{
 			sum += hl->value;
 			altSum += 11;
 		}
-		else
+		else	// If suit is not ace or face card, then sum is face value
 		{
 			sum += hl->value;
 			altSum += hl->value;
@@ -343,7 +345,7 @@ int checkDealerHand(card* hl, card* hr)
 	{
 		return 5;
 	}
-	else if ((sum == 31) || (altSum == 31))
+	else if ((sum == 31) || (altSum == 31))	// If dealer hits 31
 	{
 		return 4;
 	}
@@ -361,23 +363,23 @@ int checkDealerHand(card* hl, card* hr)
 	}
 }
 
-int checkPlayerHand(card* hl, card* hr)
+int checkPlayerHand(card* hl, card* hr)		// Checks sum of player's hand
 {
 	int sum = 0;
 	int altSum = 0;
 	while (hl != NULL)	
 	{
-		if ((hl->value == 11) || (hl->value == 12) || (hl->value == 13))
+		if ((hl->value == 11) || (hl->value == 12) || (hl->value == 13))	// If suit is 11, 12, or 13, sum is 10
 		{
 			sum += 10;
 			altSum += 10;
 		}
-		else if (hl->value == 1)
+		else if (hl->value == 1)	// If suit is ace, sum is sum + 1 (or altSum is altSum + 11)
 		{
 			sum += (hl->value);
 			altSum += 11;
 		}
-		else
+		else	// If suit is not ace or face card, then sum is sum + face value
 		{
 			sum += hl->value;
 			altSum += hl->value;
@@ -388,7 +390,7 @@ int checkPlayerHand(card* hl, card* hr)
 	{
 		return 5;
 	}
-	else if ((sum == 31) || (altSum == 31))
+	else if ((sum == 31) || (altSum == 31))	// If player hits 31
 	{
 		return 4;
 	}
@@ -417,17 +419,17 @@ int compareSums(card* dealer, card* player)
 	int altDealerSum = 0;
 	while (dealer != NULL)
 	{
-		if ((dealer->value == 11) || (dealer->value == 12) || (dealer->value == 13))
+		if ((dealer->value == 11) || (dealer->value == 12) || (dealer->value == 13))	// If dealer card is face card
 		{
-			dealerSum += 10;
+			dealerSum += 10;	// Sum is sum + 10
 			altDealerSum += 10;
 		}
-		else if (dealer->value == 1)
+		else if (dealer->value == 1)	// If dealer card is ace
 		{
-			dealerSum += (dealer->value);
-			altDealerSum += 11;
+			dealerSum += (dealer->value);	// Sum is sum + 1
+			altDealerSum += 11;		// Or altSum is altSum + 11
 		}
-		else
+		else	// If not ace or face card, sum is sum + face value
 		{
 			dealerSum += dealer->value;
 			altDealerSum += dealer->value;
@@ -438,17 +440,17 @@ int compareSums(card* dealer, card* player)
 	int altPlayerSum = 0;
 	while (player != NULL)
 	{
-		if ((player->value == 11) || (player->value == 12) || (player->value == 13))
+		if ((player->value == 11) || (player->value == 12) || (player->value == 13))	// If player card is face card
 		{
-			playerSum += 10;
+			playerSum += 10;	// Sum is sum + 10
 			altPlayerSum += 10;
 		}
-		else if (player->value == 1)
+		else if (player->value == 1)	// If player card is ace
 		{
-			playerSum += (player->value);
-			altPlayerSum += 11;
+			playerSum += (player->value);	// Sum is sum + 1
+			altPlayerSum += 11;		// Or altSum is altSum + 11
 		}
-		else
+		else	// If not ace or face card, sum is sum + face value
 		{
 			playerSum += player->value;
 			altPlayerSum += player->value;
@@ -459,7 +461,7 @@ int compareSums(card* dealer, card* player)
 
 void printCard(card* printedCard)	// Function for printing an individual card
 {
-	// Print value
+	// Print value if ace or face card
 	if (printedCard->value == 1)
 	{
 		printf("A ");
@@ -476,7 +478,7 @@ void printCard(card* printedCard)	// Function for printing an individual card
 	{
 		printf("K ");
 	}
-	else
+	else	// Print face value
 	{
 		printf("%d ", printedCard->value);
 
