@@ -17,19 +17,20 @@ typedef struct card_s {
 } card;
 
 // Function Definitions
-void createDeck();
+void createDeck(FILE* inp);
+void shuffleDeck(card* hl, card* hr);
 void createCard(card* p, card** hl, card** hr, char suit[9], int value);
 
-void resetHand(card** hl, card** hr); // Resets dealer or player hand
+void resetHand(card** hl, card** hr);				// Resets dealer or player hand
 void dealCard(card* p, card** hl, card** hr);
 void deleteCard(card* p, card** hl, card** hr);
-card* findCard(card** hl, card** hr);	// Find random card, add to player/dealer hand and delete from deck
+card* findCard(card** hl, card** hr);				// Find random card, add to player/dealer hand and delete from deck
 
-int checkDealerHand(card* hl, card* hr);	// Checks sum of dealer's hand
-int checkPlayerHand(card* hl, card* hr);	// Checks sum of player's hand
+int checkDealerHand(card* hl, card* hr);			// Checks sum of dealer's hand
+int checkPlayerHand(card* hl, card* hr);			// Checks sum of player's hand
 int compareSums(card* dealer, card* player);
 int numCardsLeft(card* hl, card* hr);
-void printCard(card* printedCard);		// Prints cards in player's/dealer's hand
+void printCard(card* printedCard);					// Prints cards in player's/dealer's hand
 
 
 card* deckStart = NULL;
@@ -37,7 +38,7 @@ card* deckEnd = NULL;
 
 int main(void)
 {
-	printf("Playing 31: \n");
+	printf("Let's play Blackjack, 31 style!: \n");
 	int playerMoney = 1000;
 	const int MINBET = 20;
 	const int MAXBET = 200;
@@ -45,9 +46,44 @@ int main(void)
 	int roundCounter = 1;
 	bool roundEnd = false;
 
-	// Initialize deck
-	createDeck();
+	FILE* inputFile;
+	char fileName[100];
+	FILE* deck;
+	deck = fopen("31deck.txt", "w");
+	for (int i = 1; i < 14; i++)
+	{
+		for (int j = 0; j < 2; j++)
+		{
+			fprintf(deck, "%d %s\n", i, "heart");
+			fprintf(deck, "%d %s\n", i, "diamond");
+			fprintf(deck, "%d %s\n", i, "club");
+			fprintf(deck, "%d %s\n", i, "spade");
+		}
+	}
+	fclose(deck);
+	
+	printf("\nPlease enter the name of the file with your deck of cards: ");
+	fgets(fileName, 100, stdin);
+	if (fileName[strlen(fileName) - 1] == '\n')
+	{
+		fileName[strlen(fileName) - 1] = '\0';
+	}
+	inputFile = fopen(fileName, "r");
+	while (inputFile == NULL)
+	{
+		printf("\nUnable to open file. Please try again: ");
+		fgets(fileName, 100, stdin);
+		if (fileName[strlen(fileName) - 1] == '\n')
+		{
+			fileName[strlen(fileName) - 1] = '\0';
+		}
+		inputFile = fopen(fileName, "r");
+	}
 
+	// Initialize deck
+	
+	createDeck(inputFile);
+	
 	// Set up player & dealer variables
 	card* playerStart = NULL;
 	card* playerEnd = NULL;
@@ -55,21 +91,22 @@ int main(void)
 	card* dealerEnd = NULL;
 	srand(time(0));
 
-	while (playerMoney > MINBET)	// Starts the round; Round only begins if player has more money than MINBET ($20)
+	while (playerMoney > MINBET)						// Starts the round; Round only begins if player has more money than MINBET ($20)
 	{
 		printf("\nRound %d:", roundCounter);			// Prints what # round player/dealer is on
+		roundEnd = false;
 		// Deal first cards to player and dealer
 		dealCard(dealerStart, &dealerStart, &dealerEnd);
 		dealCard(playerStart, &playerStart, &playerEnd);
 		printf("\nDealer: ");
-		printf("*");			// Print first cards for player and dealer ("*" represents hidden card)
+		printf("| |");									// Print first cards for player and dealer ("| |" represents hidden card)
 		printf("\nPlayer: ");
 		printCard(playerStart);
 
 		// Ask user for bet amount
-		printf("\nPlace your bet (minimum 20, max 200): ");
+		printf("\nPlace your bet (minimum $20, max $200): ");
 		scanf("%d", &playerBet);
-		while ((playerBet > 200) || (playerBet < 20))	// If the player enters an invalid bet amount
+		while ((playerBet > 200) || (playerBet < 20) || (playerBet>playerMoney))		// If the player enters an invalid bet amount
 		{
 			printf("\nInvalid bet. Please try again: ");	// Prompts user to enter a bet amount until valid amount is entered
 			scanf("%d", &playerBet);
@@ -83,48 +120,48 @@ int main(void)
 		// Check outcome of dealer hand
 		card* dealerIndex;
 		dealerIndex = dealerStart;
-		printf("\Dealer: ");
+		printf("\nDealer: ");
 		switch (checkDealerHand(dealerStart, dealerEnd))	// Checks status/sum of dealer's hand
 		{
 		case 5:		// If dealer sum equals 14
-			while (dealerIndex != NULL)		// Print all cards
+			while (dealerIndex != NULL)						// Print all cards
 			{
 				printCard(dealerIndex);
 				dealerIndex = dealerIndex->next;
 			}
 			printf("\nDealer hit 14. You have to hit 31 to win.");
 			break;
-		case 4:		// If dealer sum equals 31
-			while (dealerIndex != NULL)		// Print all cards
+		case 4:												// If dealer sum equals 31
+			while (dealerIndex != NULL)						// Print all cards
 			{
 				printCard(dealerIndex);
 				dealerIndex = dealerIndex->next;
 			}
 			playerMoney = playerMoney - playerBet;
-			printf("\nDealer hit 31! Dealer wins.");	// If dealer sum equals 31, dealer wins
-			roundEnd = true;	// The round ends. The dealer won.
+			printf("\nDealer hit 31! Dealer wins.");		// If dealer sum equals 31, dealer wins
+			roundEnd = true;								// The round ends. The dealer won.
 			break;
-		case 3:		// If dealer sum is between 27 and 31 (includes 27, excludes 31)
-			while (dealerIndex->next != NULL)	// Don't print last card
+		case 3:												// If dealer sum is between 27 and 31 (includes 27, excludes 31)
+			while (dealerIndex->next != NULL)				// Don't print last card
 			{
 				printCard(dealerIndex);
 				dealerIndex = dealerIndex->next;
 			}
-			printf("FD CARD");
+			printf("| |");
 			break;
-		case -1:	// If dealer goes bust (sum of dealer's cards > 31)
+		case -1:											// If dealer goes bust (sum of dealer's cards > 31)
 			while (dealerIndex != NULL)
 			{
 				printCard(dealerIndex);
 				dealerIndex = dealerIndex->next;
 			}
 			playerMoney = playerMoney + playerBet;
-			printf("\nDealer went bust! You win");		// If dealer goes bust, player wins
-			roundEnd = true;	// The round ends. The player won.
+			printf("\nDealer went bust! You win");			// If dealer goes bust, player wins
+			roundEnd = true;								// The round ends. The player won.
 			break;
 		}
 
-		if (roundEnd == false)	// Check if dealer already won/lost
+		if (roundEnd == false)								// Check if dealer already won/lost
 		{
 			// Player's turn 
 			char playerChoice = 'h';
@@ -135,13 +172,13 @@ int main(void)
 				scanf("%*c%c", &playerChoice);
 				while ((playerChoice != 'h') && (playerChoice != 's'))
 				{
-					printf("\nInvalid input. Please try again: ");	// If user doesn't enter a valid input ("h" or "s")
+					printf("\nInvalid input. Please try again: ");			// If user doesn't enter a valid input ("h" or "s")
 					scanf("%*c%c", &playerChoice);
 				}
 				playerIndex = playerStart;
 				if (playerChoice == 'h')	// If player inputs "h"
 				{
-					dealCard(playerStart, &playerStart, &playerEnd);	// Deals another card to player's hand
+					dealCard(playerStart, &playerStart, &playerEnd);		// Deals another card to player's hand
 					printf("\nPlayer: ");
 					while (playerIndex != NULL)
 					{
@@ -150,50 +187,130 @@ int main(void)
 					}
 				}
 			}
-			switch (checkPlayerHand(playerStart, playerEnd))	// Checks status/sum of player's hand
+			if ((checkDealerHand(dealerStart, dealerEnd) == 5) && (checkPlayerHand(playerStart, playerEnd) != 4))
 			{
-			case 5:		// If player sum equals 14
-				printf("\nPlayer hit 14!");
-				playerMoney = playerMoney + playerBet;	// Player wins and bet amount is added to player's total amount of money
-				break;
-			case 4:		// If player sum equals 31
-				printf("\nPLayer hit 31!");
-				playerMoney = playerMoney + playerBet;	// Player wins and bet amount is added to player's total amount of money
-				break;
-			case -1:	// If player goes bust (sum > 31)
-				printf("\nPlayer goes bust!");
-				playerMoney = playerMoney - playerBet;	// Player loses and bet amount is subtracted from player's total amount of money
-				break;
+				printf("\nPlayer didn't hit 31. Player loses.");
+				playerMoney = playerMoney - playerBet;
+
 			}
-			if (playerChoice == 's')	// If player chooses not to add anymore cards to their hand
+			else
 			{
-				int result = compareSums(dealerStart, playerStart);
+				switch (checkPlayerHand(playerStart, playerEnd))	// Checks status/sum of player's hand
+				{
+				case 5:		// If player sum equals 14
+					printf("\nPlayer hit 14!");
+					playerMoney = playerMoney + playerBet;			// Player wins and bet amount is added to player's total amount of money
+					break;
+				case 4:		// If player sum equals 31
+					printf("\nPLayer hit 31! You win %d.", playerBet);
+					playerMoney = playerMoney + playerBet;			// Player wins and bet amount is added to player's total amount of money
+					break;
+				case -1:	// If player goes bust (sum > 31)
+					printf("\nPlayer goes bust!");
+					playerMoney = playerMoney - playerBet;			// Player loses and bet amount is subtracted from player's total amount of money
+					printf(" You lose %d.", playerBet);
+					break;
+				}
+				if (playerChoice == 's')	// If player chooses not to add anymore cards to their hand
+				{
+					printf("\nDealer: ");
+					dealerIndex = dealerStart;
+					while (dealerIndex != NULL)						// Print all cards
+					{
+						printCard(dealerIndex);
+						dealerIndex = dealerIndex->next;
+					}
+					int result = compareSums(dealerStart, playerStart);
+					switch (result)
+					{
+					case 1:
+						playerMoney = playerMoney - playerBet;
+						printf("\nDealer wins! Player loses $%d.", playerBet);
+						break;
+					case -1:
+						playerMoney = playerMoney + playerBet;
+						printf("\nPlayer wins! Player wins $%d.", playerBet);
+						break;
+					case 0:
+						printf("\nRound is a wash!");
+						break;
+					}
+				}
 			}
 		}
-		printf("\nPlayer money: %d", playerMoney);	// Prints current amount of money player has
+		printf("\nPlayer money: $%d", playerMoney);	// Prints current amount of money player has
 		printf("\n");
 		resetHand(&playerStart, &playerEnd);		// Resets dealer and player hand
 		resetHand(&dealerStart, &dealerEnd);
 		roundCounter++;		// Counts the number of rounds played
 	}
-
+	
+	if (playerMoney < 20)
+	{
+		printf("\nGame over! You ran out of money :(");
+	}
+	else if (numCardsLeft(deckStart, deckEnd) < 30)
+	{
+		resetHand(&deckStart, &deckEnd);
+		createDeck(inputFile);
+		shuffleDeck(&deckStart, &deckEnd);
+	}
+	fclose(inputFile);
 	return 0;
 }
-void createDeck()
+void createDeck(FILE* inp)
 {
-	int i,j;
-	for (i = 1; i < 14;i++)	// Initialize each number value
+	while (!feof(inp))
 	{
-		for (j = 0; j < 2;j++)	// Double the amount since its 104 cards
-		{
-			createCard(deckStart, &deckStart, &deckEnd, "heart", i);
-			createCard(deckStart, &deckStart, &deckEnd, "diamond", i);
-			createCard(deckStart, &deckStart, &deckEnd, "spade", i);
-			createCard(deckStart, &deckStart, &deckEnd, "club", i);
-		}
+		int value;
+		char suit[9];
+		fscanf(inp, "%d", &value);
+		fscanf(inp, "%s", suit);
+		createCard(deckStart, &deckStart, &deckEnd, suit, value);
 	}
-
+	deleteCard(deckStart->next, &deckStart, &deckEnd);
+	shuffleDeck(deckStart,deckEnd);
 }
+void shuffleDeck(card* hl, card* hr)
+{
+	int i = 0;
+
+	card* temp1;
+	card* temp2;
+	card* holder;
+	holder = (card*)malloc(sizeof(card));
+	int index1, index2;
+	for (int j = 0; j < 50; j++)
+	{
+		index1 = rand() % 103;
+		
+		temp1 = hl;
+		for (i = 0;i < index1;i++)
+		{
+			temp1 = temp1->next;
+		}
+		holder->value = temp1->value;
+		strcpy(holder->suit, temp1->suit);
+
+		index2 = (rand() % 103);
+		
+		temp2 = hl;
+		for (i = 0; i < index2;i++)
+		{
+			temp2 = temp2->next;
+		}
+
+		temp1->value = temp2->value;
+		strcpy(temp1->suit, temp2->suit);
+		temp2->value = holder->value;
+		strcpy(temp2->suit, holder->suit);
+	}
+	free(holder);
+	card* temp;
+	temp = deckStart;
+	printf("\nDECK SHUFFLED\n");
+}
+
 void createCard(card* p, card** hl, card** hr, char suit[9], int value)
 {
 	card* temp;
@@ -233,8 +350,15 @@ void dealCard(card* p, card** hl, card** hr)
 {
 	card* temp;
 	temp = (card*)malloc(sizeof(card));
-	temp = findCard(&deckStart, &deckEnd);
-	
+	bool cardFound = false;
+	while (cardFound == false)
+	{
+		temp = findCard(&deckStart, &deckEnd);
+		if (temp != NULL)
+		{
+			cardFound = true;
+		}
+	}
 	if (*hl == NULL)	// if adding to beginning of deck/hand
 	{
 		*hl = temp;
@@ -302,7 +426,7 @@ card* findCard(card** hl, card** hr)	// Find random card, add to player/dealer h
 	temp = (card*)malloc(sizeof(card));
 	temp->value = value;
 	strcpy(temp->suit, suit);
-	card* holder;
+
 	card* deckIndex = *hl;
 	while (deckIndex->next != NULL)	// While it's not the end of the deck
 	{
@@ -314,7 +438,8 @@ card* findCard(card** hl, card** hr)	// Find random card, add to player/dealer h
 		}
 		deckIndex = deckIndex->next;
 	}
-	//temp = findCard(hl, hr);
+	temp = NULL;
+	return temp;
 }
 
 int checkDealerHand(card* hl, card* hr)		// Checks sum of dealer's hand
@@ -457,6 +582,78 @@ int compareSums(card* dealer, card* player)
 		}
 		player = player->next;
 	}
+	if (altDealerSum > 31)									// If alternate dealer sum greater than 31, use normal sum
+	{
+		printf("\nDealer has a total of %d", dealerSum);
+		if (altPlayerSum > 31)
+		{
+			printf("Player has a total of %d", playerSum);
+			if (playerSum < dealerSum)
+			{
+				return 1;
+			}
+			else if (playerSum > dealerSum)
+			{
+				return -1;
+			}
+			else
+			{
+				return 0;
+			}
+		}
+		else
+		{
+			printf("\nPlayer has a total of %d", altPlayerSum);
+			if (altPlayerSum < dealerSum)
+			{
+				return 1;
+			}
+			else if (altPlayerSum > dealerSum)
+			{
+				return -1;
+			}
+			else
+			{
+				return 0;
+			}
+		}
+	}
+	else
+	{
+		printf("\nDealer has a total of %d", altDealerSum);
+		if (altPlayerSum > 31)
+		{
+			printf("Player has a total of %d", playerSum);
+			if (playerSum < altDealerSum)
+			{
+				return 1;
+			}
+			else if (playerSum > altDealerSum)
+			{
+				return -1;
+			}
+			else
+			{
+				return 0;
+			}
+		}
+		else
+		{
+			printf("\nPlayer has a total of %d", altPlayerSum);
+			if (altPlayerSum < altDealerSum)
+			{
+				return 1;
+			}
+			else if (altPlayerSum > altDealerSum)
+			{
+				return -1;
+			}
+			else
+			{
+				return 0;
+			}
+		}
+	}
 }
 
 void printCard(card* printedCard)	// Function for printing an individual card
@@ -486,18 +683,22 @@ void printCard(card* printedCard)	// Function for printing an individual card
 	//Print suit
 	if (strcmp(printedCard->suit, "heart") == 0)
 	{
-		printf("H\t");
+		printf("\x03 H");
 	}
 	else if (strcmp(printedCard->suit, "diamond") == 0)
-	{
-		printf("D\t");
+	{ 
+		printf("\x04 D");
 	}
 	else if (strcmp(printedCard->suit, "spade") == 0)
 	{
-		printf("S\t");
+		printf("\x06 S");
 	}
 	else if (strcmp(printedCard->suit, "club") == 0)
 	{
-		printf("C\t");
+		printf("\x05 C");
+	}
+	if (printedCard->next != NULL)
+	{
+		printf(", ");
 	}
 }
