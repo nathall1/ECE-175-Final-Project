@@ -251,6 +251,7 @@ int main(void)
 	}
 	else if (numCardsLeft(deckStart, deckEnd) < 30)
 	{
+		printf("\nLess than 30 cards left. Deck reshuffled.");
 		resetHand(&deckStart, &deckEnd);
 		createDeck(inputFile);
 		shuffleDeck(&deckStart, &deckEnd);
@@ -661,41 +662,41 @@ void printCard(card* printedCard)	// Function for printing an individual card
 	// Print value if ace or face card
 	if (printedCard->value == 1)
 	{
-		printf("A ");
+		printf("A");
 	}
 	else if (printedCard->value == 11)
 	{
-		printf("J ");
+		printf("J");
 	}
 	else if (printedCard->value == 12)
 	{
-		printf("Q ");
+		printf("Q");
 	}
 	else if (printedCard->value == 13)
 	{
-		printf("K ");
+		printf("K");
 	}
 	else	// Print face value
 	{
-		printf("%d ", printedCard->value);
+		printf("%d", printedCard->value);
 
 	}
 	//Print suit
 	if (strcmp(printedCard->suit, "heart") == 0)
 	{
-		printf("\x03 H");
+		printf("\x03.H");
 	}
 	else if (strcmp(printedCard->suit, "diamond") == 0)
 	{ 
-		printf("\x04 D");
+		printf("\x04.D");
 	}
 	else if (strcmp(printedCard->suit, "spade") == 0)
 	{
-		printf("\x06 S");
+		printf("\x06.S");
 	}
 	else if (strcmp(printedCard->suit, "club") == 0)
 	{
-		printf("\x05 C");
+		printf("\x05.C");
 	}
 	if (printedCard->next != NULL)
 	{
